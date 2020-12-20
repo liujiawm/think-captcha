@@ -7,9 +7,9 @@
         }
     ],
     "license" : "Apache-2.0",
-    "description" : "description",
+    "description" : "thinkphp6图片验证码",
     "keywords" : [
-        "captcha,thinkcaptcha,thinkphp,phpu"
+        "captcha","thinkcaptcha","thinkphp","phpu"
     ],
     "require": {
         "php": ">=7.1.0",
