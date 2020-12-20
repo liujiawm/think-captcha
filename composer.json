@@ -6,7 +6,7 @@
             "email": "liujiawm@163.com"
         }
     ],
-    "license" : "MIT",
+    "license" : "Apache-2.0",
     "description" : "description",
     "keywords" : [
         "captcha,thinkcaptcha,thinkphp,phpu"
