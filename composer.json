@@ -1,0 +1,26 @@
+{
+    "name" : "phpu/thinkcaptcha",
+    "authors": [
+        {
+            "name": "liujiawm",
+            "email": "liujiawm@163.com"
+        }
+    ],
+    "license" : "MIT",
+    "description" : "description",
+    "keywords" : [
+        "captcha,thinkcaptcha,thinkphp,phpu"
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "ext-mbstring": "*",
+        "ext-gd": "*",
+        "topthink/framework": "^6.0.0"
+    },
+    "autoload" : {
+        "psr-4" : {
+            "phpu\\thinkcaptcha\\" : "src"
+        }
+    }
+
+}
