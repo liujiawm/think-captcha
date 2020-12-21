@@ -17,7 +17,7 @@
     },
     "autoload" : {
         "psr-4" : {
-            "phpu\\thinkcaptcha\\" : "src"
+            "phpu\\" : "src"
         }
     }
 

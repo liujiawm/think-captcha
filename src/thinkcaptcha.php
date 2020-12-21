@@ -1,5 +1,5 @@
 <?php
-declare (strict_types = 1);
+
 
 namespace phpu\thinkcaptcha;
 
@@ -125,7 +125,7 @@ class ThinkCaptcha
 
         $characters = str_split($this->config['charPreset']);
 
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->config['length']; $i++) {
             $char .= $characters[mt_rand(0, count($characters) - 1)];
         }
 
@@ -197,11 +197,17 @@ class ThinkCaptcha
         $this->imageH = $this->config['height'];
 
         // 图片宽(px)
-        $this->imageW || $this->imageW = $this->config['length'] * $this->config['fontSize'] * 1.5 + $this->config['length'] * $this->config['fontSize'] / 2;
+        if(!$this->imageW){
+            $this->imageW = intval(ceil($this->config['length'] * $this->config['fontSize'] * 1.5 + $this->config['length'] * $this->config['fontSize'] / 2));
+        }
         // 图片高(px)
-        $this->imageH || $this->imageH = $this->config['fontSize'] * 2.5;
+        if(!$this->imageH){
+            $this->imageH = intval(ceil($this->config['fontSize'] * 2.5));
+        }
+
         // 建立一幅 $this->imageW x $this->imageH 的图像
         $this->im = imagecreate($this->imageW, $this->imageH);
+        //$this->im = imagecreatetruecolor((int)$this->imageW, (int)$this->imageH);
         // 设置背景
         imagecolorallocate($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2]);
 
@@ -247,9 +253,9 @@ class ThinkCaptcha
 
         foreach ($text as $index => $char) {
 
-            $x     = $this->config['fontSize'] * ($index + 1) * mt_rand(1.2, 1.6) * 1.5;
-            $y     = $this->config['fontSize'] + mt_rand(10, 20);
-            $angle = mt_rand(-40, 40);
+            $x     = $this->config['fontSize'] * $index + mt_rand(0, 10);
+            $y     = $this->config['fontSize'] + mt_rand(0, 10);
+            $angle = 0;
 
             imagettftext($this->im, $this->config['fontSize'], $angle, $x, $y, $this->color, $fontttf, $char);
         }
@@ -260,7 +266,10 @@ class ThinkCaptcha
         $content = ob_get_clean();
         imagedestroy($this->im);
 
-        return Response::create($content, 'image/png', 200)->header(['Content-Length' => strlen($content)]);
+        return Response::create($content, 'html', 200)
+            ->header(['Content-Length' => strlen($content)])
+            ->contentType('image/png');
+
     }
 
     /**
@@ -276,7 +285,7 @@ class ThinkCaptcha
             $dir  = dir($path);
             while (false !== ($file = $dir->read())) {
                 if ('.' != $file[0] && substr($file, -4) == '.jpg') {
-                    $bgs[] = $path . $file;
+                    $bgs[] = $file;
                 }
             }
             $dir->close();
@@ -285,9 +294,11 @@ class ThinkCaptcha
         }
 
 
-        $gb = $bgs[array_rand($bgs)];
+        $gb = $path . $bgs[array_rand($bgs)];
 
         list($width, $height) = @getimagesize($gb);
+        $width = intval(ceil($width));
+        $height = intval(ceil($height));
         // Resample
         $bgImage = @imagecreatefromjpeg($gb);
         @imagecopyresampled($this->im, $bgImage, 0, 0, 0, 0, $this->imageW, $this->imageH, $width, $height);
