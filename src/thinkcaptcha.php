@@ -1,7 +1,15 @@
 <?php
+/**
+ * 图片验证码
+ * 适用于thinkphp6
+ * @author liujiawm (liujiawm@163.com)
+ * @homepage www.phpu.cn
+ * @link https://liujiawm.github.io
+ * @license Apache-2.0
+ */
+declare (strict_types = 1);
 
-
-namespace phpu\thinkcaptcha;
+namespace phpu;
 
 use think\facade\Session;
 use think\Response;
@@ -10,15 +18,14 @@ class ThinkCaptcha
 {
     private $config = [
         'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集
-        'length'     => 4, // 验证码位数
-        'width'      => 100, // 图片宽
-        'height'     => 34, // 图片高
-        'expire'     => 1800, // 过期时间(秒)
-        'useImgBg'   => true, // 是否使用背景图片
-        'fontSize'   => 24, // 验证码字体大小(px)
+        'length'     => 5, // 验证码位数
+        'width'      => 0, // 图片宽
+        'height'     => 0, // 图片高
+        'fontSize'   => 48, // 验证码字体大小(px)
+        'bg'         => [243, 251, 254], // 背景颜色
         'useCurve'   => true, // 是否画混淆曲线
         'useNoise'   => true, // 是否添加杂点
-        'bg'         => [243, 251, 254], // 背景颜色
+        'useImgBg'   => true, // 是否使用背景图片
 
     ];
 
@@ -88,12 +95,7 @@ class ThinkCaptcha
             if(isset($config['height'])){
                 $config['height'] = intval($config['height']);
             }
-            if(isset($config['expire'])){
-                $config['expire'] = intval($config['expire']);
-                if ($config['expire'] < 10){
-                    unset($config['expire']);
-                }
-            }
+
             if(isset($config['useImgBg']) && !is_bool($config['useImgBg'])){
                 unset($config['useImgBg']);
             }
@@ -116,7 +118,7 @@ class ThinkCaptcha
 
     /**
      * 创建验证码
-     * @param string $key 独立验证key
+     * @param string $key 独立验证码key
      * @return array ['char' => $char,'value' => $hash] char生成的验证码字符，value处理后的验证码哈希
      */
     protected function generate($key=''): array
@@ -146,30 +148,24 @@ class ThinkCaptcha
     /**
      * 验证
      * @param string $code 传入的验证码字符串
-     * @param string $key 独立验证key
+     * @param string $key 独立验证码key
      * @param int $reset 验证后是否重置,0不重置，1成功后重置，2无论成功与否都重置
-     * @return int
+     * @param int $expire 有效时间(秒)
+     * @return int (-2不存在，-1超时，0错误，1正确)
      */
-    public function check(string $code,string $key='',int $reset=2): int
+    public function check(string $code,string $key='',int $reset=2,int $expire=1800): int
     {
         $name = 'captcha_data_'.$key;
 
-        if (mb_strlen($code,'UTF-8') !== $this->config['length']){
-            if ($reset === 2){
-                Session::delete($name);
-            }
-            return 0;
-        }
-
         if (!Session::has($name)) {
-            return -1; // 超时
+            return -2; // 不存在
         }
 
         $currentTime = time();
 
         $captchaData = Session::get($name);
 
-        if ($currentTime - $this->config['expire'] > $captchaData['time']){
+        if ($currentTime - $expire > $captchaData['time']){
             Session::delete($name);
             return -1; // 超时
         }
@@ -189,6 +185,11 @@ class ThinkCaptcha
         }
     }
 
+    /**
+     * 输出图片并写入SESSION
+     * @param string $key 独立验证码key
+     * @return Response 输出png图片
+     */
     public function create($key=''): Response
     {
         $generator = $this->generate($key);
@@ -198,11 +199,11 @@ class ThinkCaptcha
 
         // 图片宽(px)
         if(!$this->imageW){
-            $this->imageW = intval(ceil($this->config['length'] * $this->config['fontSize'] * 1.5 + $this->config['length'] * $this->config['fontSize'] / 2));
+            $this->imageW = intval(ceil($this->config['length'] * $this->config['fontSize'] + ($this->config['length']+1) * 10));
         }
         // 图片高(px)
         if(!$this->imageH){
-            $this->imageH = intval(ceil($this->config['fontSize'] * 2.5));
+            $this->imageH = intval(ceil($this->config['fontSize'] + 20));
         }
 
         // 建立一幅 $this->imageW x $this->imageH 的图像
@@ -235,9 +236,7 @@ class ThinkCaptcha
 
         $fontttf = $ttfPath . $ttf;
 
-        if ($this->config['useImgBg']) {
-            $this->background();
-        }
+
 
         if ($this->config['useNoise']) {
             // 绘杂点
@@ -248,16 +247,22 @@ class ThinkCaptcha
             $this->writeCurve();
         }
 
+        if ($this->config['useImgBg']) {
+            $this->background();
+        }
+
         // 绘验证码
         $text = str_split($generator['char']); // 验证码
-
+        $mx = intval(ceil(($this->imageW - $this->config['fontSize'] * $this->config['length']) / ($this->config['length']+1) * 1.2));
+        $my = intval(ceil(($this->imageH - $this->config['fontSize']) / 2));
+        $x = $mx;
         foreach ($text as $index => $char) {
 
-            $x     = $this->config['fontSize'] * $index + mt_rand(0, 10);
-            $y     = $this->config['fontSize'] + mt_rand(0, 10);
-            $angle = 0;
+            $y     = $this->config['fontSize'] + mt_rand(0, $my);
+            $angle = mt_rand(-10, 10);
 
             imagettftext($this->im, $this->config['fontSize'], $angle, $x, $y, $this->color, $fontttf, $char);
+            $x     += $this->config['fontSize'] + mt_rand(0, $mx);
         }
 
         ob_start();
@@ -312,12 +317,13 @@ class ThinkCaptcha
     protected function writeNoise(): void
     {
         $codeSet = '2345678abcdefhijkmnpqrstuvwxyz';
-        for ($i = 0; $i < 10; $i++) {
+        $m = intval(ceil($this->imageW / 20));
+        for ($i = 0; $i < $m; $i++) {
             //杂点颜色
             $noiseColor = imagecolorallocate($this->im, mt_rand(150, 225), mt_rand(150, 225), mt_rand(150, 225));
-            for ($j = 0; $j < 5; $j++) {
+            for ($j = 0; $j < 2; $j++) {
                 // 绘杂点
-                imagestring($this->im, 5, mt_rand(-10, $this->imageW), mt_rand(-10, $this->imageH), $codeSet[mt_rand(0, 29)], $noiseColor);
+                imagestring($this->im, mt_rand(1, 5), mt_rand(-10, $this->imageW), mt_rand(-10, $this->imageH), $codeSet[mt_rand(0, 29)], $noiseColor);
             }
         }
     }
@@ -330,29 +336,29 @@ class ThinkCaptcha
         $px = $py = 0;
 
         // 曲线前部分
-        $A = mt_rand(1, $this->imageH / 2); // 振幅
-        $b = mt_rand(-$this->imageH / 4, $this->imageH / 4); // Y轴方向偏移量
-        $f = mt_rand(-$this->imageH / 4, $this->imageH / 4); // X轴方向偏移量
+        $A = mt_rand(1, (int)ceil($this->imageH / 2)); // 振幅
+        $b = mt_rand((int)floor($this->imageH / 4 * -1), (int)ceil($this->imageH / 4)); // Y轴方向偏移量
+        $f = mt_rand((int)floor($this->imageH / 4 * -1), (int)ceil($this->imageH / 4)); // X轴方向偏移量
         $T = mt_rand($this->imageH, $this->imageW * 2); // 周期
         $w = (2 * M_PI) / $T;
 
         $px1 = 0; // 曲线横坐标起始位置
-        $px2 = mt_rand($this->imageW / 2, $this->imageW * 0.8); // 曲线横坐标结束位置
+        $px2 = mt_rand((int)ceil($this->imageW / 2), (int)ceil($this->imageW * 0.8)); // 曲线横坐标结束位置
 
         for ($px = $px1; $px <= $px2; $px = $px + 1) {
             if (0 != $w) {
                 $py = $A * sin($w * $px + $f) + $b + $this->imageH / 2; // y = Asin(ωx+φ) + b
-                $i = (int)($this->config['fontSize'] / 5);
+                $i = (int)round($this->config['fontSize'] / 6);
                 while ($i > 0) {
-                    imagesetpixel($this->im, $px + $i, $py + $i, $this->color); // 这里(while)循环画像素点比imagettftext和imagestring用字体大小一次画出（不用这while循环）性能要好很多
+                    imagesetpixel($this->im, intval($px + $i), intval($py + $i), $this->color); // 这里(while)循环画像素点比imagettftext和imagestring用字体大小一次画出（不用这while循环）性能要好很多
                     $i--;
                 }
             }
         }
 
         // 曲线后部分
-        $A   = mt_rand(1, $this->imageH / 2); // 振幅
-        $f   = mt_rand(-$this->imageH / 4, $this->imageH / 4); // X轴方向偏移量
+        $A   = mt_rand(1, (int)ceil($this->imageH / 2)); // 振幅
+        $f   = mt_rand((int)floor($this->imageH / 4 * -1), (int)ceil($this->imageH / 4)); // X轴方向偏移量
         $T   = mt_rand($this->imageH, $this->imageW * 2); // 周期
         $w   = (2 * M_PI) / $T;
         $b   = $py - $A * sin($w * $px + $f) - $this->imageH / 2;
@@ -364,7 +370,7 @@ class ThinkCaptcha
                 $py = $A * sin($w * $px + $f) + $b + $this->imageH / 2; // y = Asin(ωx+φ) + b
                 $i  = (int) ($this->config['fontSize'] / 5);
                 while ($i > 0) {
-                    imagesetpixel($this->im, $px + $i, $py + $i, $this->color);
+                    imagesetpixel($this->im, intval($px + $i), intval($py + $i), $this->color);
                     $i--;
                 }
             }
