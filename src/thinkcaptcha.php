@@ -16,6 +16,10 @@ use think\Response;
 
 class ThinkCaptcha
 {
+    /**
+     * 默认配置
+     * @var array
+     */
     private $config = [
         'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集
         'length'     => 5, // 验证码位数
@@ -74,8 +78,11 @@ class ThinkCaptcha
     protected $imageH = 0;
 
 
-    public function __construct($config = null)
-    {
+    /**
+     * ThinkCaptcha constructor.
+     * @param null|array $config 配置
+     */
+    public function __construct($config = null){
         if(!is_null($config) && is_array($config)){
             if (isset($config['charPreset'])){
                 $config['charPreset'] = trim($config['charPreset']);
@@ -121,8 +128,7 @@ class ThinkCaptcha
      * @param string $key 独立验证码key
      * @return array ['char' => $char,'value' => $hash] char生成的验证码字符，value处理后的验证码哈希
      */
-    protected function generate($key=''): array
-    {
+    protected function generate($key=''): array{
         $char = '';
 
         $characters = str_split($this->config['charPreset']);
@@ -153,8 +159,7 @@ class ThinkCaptcha
      * @param int $expire 有效时间(秒)
      * @return int (-2不存在，-1超时，0错误，1正确)
      */
-    public function check(string $code,string $key='',int $reset=2,int $expire=1800): int
-    {
+    public function check(string $code,string $key='',int $reset=2,int $expire=1800): int{
         $name = 'captcha_data_'.$key;
 
         if (!Session::has($name)) {
@@ -190,8 +195,7 @@ class ThinkCaptcha
      * @param string $key 独立验证码key
      * @return Response 输出png图片
      */
-    public function create($key=''): Response
-    {
+    public function create($key=''): Response{
         $generator = $this->generate($key);
 
         $this->imageW = $this->config['width'];
@@ -280,8 +284,7 @@ class ThinkCaptcha
     /**
      * 加图像背景图
      */
-    protected function background(): void
-    {
+    protected function background(): void{
         $path = __DIR__ . '/../assets/bgs/';
 
 
@@ -314,8 +317,7 @@ class ThinkCaptcha
      * 画杂点
      * 往图片上写不同颜色的字母或数字
      */
-    protected function writeNoise(): void
-    {
+    protected function writeNoise(): void{
         $codeSet = '2345678abcdefhijkmnpqrstuvwxyz';
         $m = intval(ceil($this->imageW / 20));
         for ($i = 0; $i < $m; $i++) {
@@ -331,8 +333,7 @@ class ThinkCaptcha
     /**
      * 画一条由两条连在一起构成的随机正弦函数曲线作干扰线(你可以改成更帅的曲线函数)
      */
-    protected function writeCurve(): void
-    {
+    protected function writeCurve(): void{
         $px = $py = 0;
 
         // 曲线前部分
