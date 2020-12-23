@@ -17,6 +17,11 @@ use think\Response;
 class ThinkCaptcha
 {
     /**
+     * 当前版本号
+     */
+    const VERSION = '1.0.1';
+
+    /**
      * 默认配置
      * @var array
      */
@@ -32,12 +37,6 @@ class ThinkCaptcha
         'useImgBg'   => true, // 是否使用背景图片
 
     ];
-
-    /**
-     * 验证后是否重置,0不重置，1成功后重置，2无论成功与否都重置
-     * @var int
-     */
-    private $reset = 2;
 
     /**
      * 待选字体名称，文件路径 assets/ttfs
@@ -77,6 +76,12 @@ class ThinkCaptcha
      */
     protected $imageH = 0;
 
+    /**
+     * 验证码图片类型
+     * @var string
+     */
+    protected $imageType = 'png';
+
 
     /**
      * ThinkCaptcha constructor.
@@ -84,71 +89,58 @@ class ThinkCaptcha
      */
     public function __construct($config = null){
         if(!is_null($config) && is_array($config)){
-            if (isset($config['charPreset'])){
-                $config['charPreset'] = trim($config['charPreset']);
-                if (empty($config['charPreset'])){
-                    unset($config['charPreset']);
-                }
-            }
-            if(isset($config['length'])){
-                $config['length'] = intval($config['length']);
-                if ($config['length'] < 1){
-                    unset($config['length']);
-                }
-            }
-            if(isset($config['width'])){
-                $config['width'] = intval($config['width']);
-            }
-            if(isset($config['height'])){
-                $config['height'] = intval($config['height']);
-            }
-
-            if(isset($config['useImgBg']) && !is_bool($config['useImgBg'])){
-                unset($config['useImgBg']);
-            }
-            if(isset($config['fontSize'])){
-                $config['fontSize'] = intval($config['fontSize']);
-                if ($config['fontSize'] < 1){
-                    unset($config['fontSize']);
-                }
-            }
-            if(isset($config['useCurve']) && !is_bool($config['useCurve'])){
-                unset($config['useCurve']);
-            }
-            if(isset($config['useNoise']) && !is_bool($config['useNoise'])){
-                unset($config['useNoise']);
-            }
-
+            $config = self::verifyConfig($config);
             $this->config = array_merge($this->config, $config);
         }
     }
 
+    public function type(string $type){
+        $types = ['jpg','gif','png','base64'];
+        if (in_array($type, $types)){
+            $this->imageType = $type;
+        }
+        return $this;
+    }
+
+
     /**
-     * 创建验证码
-     * @param string $key 独立验证码key
-     * @return array ['char' => $char,'value' => $hash] char生成的验证码字符，value处理后的验证码哈希
+     * @param null $name 键名，如果用数组方式设置，该值为配置数组
+     * @param null|bool|string|int|array|mixed $val 在用键名单独设置一个配置值时，该参数是配置的值
+     * @return $this
      */
-    protected function generate($key=''): array{
-        $char = '';
+    public function setConfig($name = null,$val=null){
+        if(is_array($name) && is_null($val)){
+            $config = self::verifyConfig($name);
+            $this->config = array_merge($this->config, $config);
+        }else if(is_string($name) && array_key_exists($name, $this->config)){
+            $this->config[$name] = $val;
+        }
+        return $this;
+    }
 
-        $characters = str_split($this->config['charPreset']);
-
-        for ($i = 0; $i < $this->config['length']; $i++) {
-            $char .= $characters[mt_rand(0, count($characters) - 1)];
+    /**
+     * 取配置值
+     * @param null|string $name
+     * @return array|mixed|string
+     */
+    public function getConfig($name=null){
+        if(is_null($name)){
+            return $this->config;
         }
 
-        $captcha_data = mb_strtolower($char, 'UTF-8');
+        if(array_key_exists($name, $this->config)){
+            return $this->config[$name];
+        }
 
-        $hash = password_hash($captcha_data, PASSWORD_BCRYPT);
+        return 'Nothing';
+    }
 
-        $name = 'captcha_data_'.$key;
-
-        Session::set($name,['value'=>$hash,'time'=>time()]);
-
-        return [
-            'char' => $char,
-            'value'   => $hash,
-        ];
+    /**
+     * 当前版本号
+     * @return string
+     */
+    public function version(): string{
+        return self::VERSION;
     }
 
     /**
@@ -271,14 +263,73 @@ class ThinkCaptcha
 
         ob_start();
         // 输出图像
-        imagepng($this->im);
-        $content = ob_get_clean();
-        imagedestroy($this->im);
+        switch ($this->imageType){
+            case 'jpg':
+            case 'jpeg':
+                imagejpeg($this->im);
+                $printContent = ob_get_clean();
+                imagedestroy($this->im);
+                return Response::create($printContent, 'html', 200)
+                    ->header(['Content-Length' => strlen($printContent)])
+                    ->contentType('image/jpeg');
+                break;
+            case 'gif':
+                imagegif($this->im);
+                $printContent = ob_get_clean();
+                imagedestroy($this->im);
+                return Response::create($printContent, 'html', 200)
+                    ->header(['Content-Length' => strlen($printContent)])
+                    ->contentType('image/gif');
+                break;
+            case 'base64':
+                imagepng($this->im);
+                $printContent = base64_encode(ob_get_clean());
+                imagedestroy($this->im);
+                $printContent = 'data:image/png;base64,'.$printContent;
+                return Response::create($printContent, 'html', 200)
+                    ->header(['Content-Length' => strlen($printContent)]);
+                break;
+            case 'png':
+            default:
+                imagepng($this->im);
+                $printContent = ob_get_clean();
+                imagedestroy($this->im);
+                return Response::create($printContent, 'html', 200)
+                    ->header(['Content-Length' => strlen($printContent)])
+                    ->contentType('image/png');
+        }
+        
 
-        return Response::create($content, 'html', 200)
-            ->header(['Content-Length' => strlen($content)])
-            ->contentType('image/png');
+        
 
+    }
+
+    /**
+     * 创建验证码
+     * @param string $key 独立验证码key
+     * @return array ['char' => $char,'value' => $hash] char生成的验证码字符，value处理后的验证码哈希
+     */
+    protected function generate($key=''): array{
+        $char = '';
+
+        $characters = str_split($this->config['charPreset']);
+
+        for ($i = 0; $i < $this->config['length']; $i++) {
+            $char .= $characters[mt_rand(0, count($characters) - 1)];
+        }
+
+        $captcha_data = mb_strtolower($char, 'UTF-8');
+
+        $hash = password_hash($captcha_data, PASSWORD_BCRYPT);
+
+        $name = 'captcha_data_'.$key;
+
+        Session::set($name,['value'=>$hash,'time'=>time()]);
+
+        return [
+            'char' => $char,
+            'value'   => $hash,
+        ];
     }
 
     /**
@@ -377,5 +428,53 @@ class ThinkCaptcha
             }
         }
     }
+
+
+    /**
+     * 处理配置项的值使其合法
+     * @param array $config
+     * @return array
+     */
+    private static function verifyConfig(array $config): array{
+
+        if (isset($config['charPreset'])){
+            $config['charPreset'] = trim($config['charPreset']);
+            if (empty($config['charPreset'])){
+                unset($config['charPreset']);
+            }
+        }
+        if(isset($config['length'])){
+            $config['length'] = intval($config['length']);
+            if ($config['length'] < 1){
+                unset($config['length']);
+            }
+        }
+        if(isset($config['width'])){
+            $config['width'] = intval($config['width']);
+        }
+        if(isset($config['height'])){
+            $config['height'] = intval($config['height']);
+        }
+
+        if(isset($config['useImgBg']) && !is_bool($config['useImgBg'])){
+            unset($config['useImgBg']);
+        }
+        if(isset($config['fontSize'])){
+            $config['fontSize'] = intval($config['fontSize']);
+            if ($config['fontSize'] < 1){
+                unset($config['fontSize']);
+            }
+        }
+        if(isset($config['useCurve']) && !is_bool($config['useCurve'])){
+            unset($config['useCurve']);
+        }
+        if(isset($config['useNoise']) && !is_bool($config['useNoise'])){
+            unset($config['useNoise']);
+        }
+
+        return $config;
+    }
+
+
 
 }

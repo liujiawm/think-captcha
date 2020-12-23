@@ -13,6 +13,12 @@ composer require phpu/thinkcaptcha
 
 图片生成使用gd扩展库
 
+v1.0.0升级至v1.0.1
+
+- 支持输出base64,png,gif,jpg
+- 支持thinkphp6的facade
+- 增加setConfig()用来调整配置的方法
+
 ## 输出验证码图片
 
 验证码显示控制器
