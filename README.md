@@ -8,7 +8,7 @@ php版本要求 >=7.1.0
 
 composer
 ```
-composer require phpu/thinkcaptcha
+composer require phpu/think-captcha
 ```
 如果项目未开启SESSION,则需要开启，开启方式参考[thinkphp6完全开发手册中杂项之SESSION](https://www.kancloud.cn/manual/thinkphp6_0/1037635)
 
@@ -19,11 +19,6 @@ composer require phpu/thinkcaptcha
 
 ### 注意：验证码不支持多字节字符
 
-## v1.0.0升级至v1.0.1
-
-- 支持输出base64,png,gif,jpg
-- 支持thinkphp6的facade
-- 增加setConfig()用来调整配置的方法
 
 ## 输出验证码图片
 
@@ -47,6 +42,7 @@ composer require phpu/thinkcaptcha
         $tc = new ThinkCaptcha();
 
         if(1 !== $re = $tc->check($code)){
+            // -2验证码不存在，-1验证码过期，0错误
             return response($re,200);
         }
 

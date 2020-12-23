@@ -19,7 +19,7 @@ class ThinkCaptcha
     /**
      * 当前版本号
      */
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.0';
 
     /**
      * 默认配置
@@ -108,7 +108,7 @@ class ThinkCaptcha
      * @param null|bool|string|int|array|mixed $val 在用键名单独设置一个配置值时，该参数是配置的值
      * @return $this
      */
-    public function setConfig($name = null,$val=null){
+    public function config($name = null,$val=null){
         if(is_array($name) && is_null($val)){
             $config = self::verifyConfig($name);
             $this->config = array_merge($this->config, $config);
