@@ -26,7 +26,7 @@ class ThinkCaptcha
      * @var array
      */
     private $config = [
-        'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集
+        'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集，不支持多字节字符
         'length'     => 5, // 验证码位数
         'width'      => 0, // 图片宽
         'height'     => 0, // 图片高

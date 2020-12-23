@@ -1,19 +1,25 @@
 # thinkcaptcha
 thinkphp6图片验证码
 
-
+[https://liujiawm.github.io/](https://liujiawm.github.io/)
 
 ## 安装
+php版本要求 >=7.1.0
 
 composer
 ```
 composer require phpu/thinkcaptcha
 ```
-如果项目未开启SESSION,则需要开启，开启方式参考thinkphp6完全开发手册中杂项之SESSION
+如果项目未开启SESSION,则需要开启，开启方式参考[thinkphp6完全开发手册中杂项之SESSION](https://www.kancloud.cn/manual/thinkphp6_0/1037635)
 
-图片生成使用gd扩展库
+## require
+- mbstring
+- gd
+- topthink/framework ^6.0.0
 
-v1.0.0升级至v1.0.1
+### 注意：验证码不支持多字节字符
+
+## v1.0.0升级至v1.0.1
 
 - 支持输出base64,png,gif,jpg
 - 支持thinkphp6的facade
@@ -95,7 +101,7 @@ $reset值有三种，分别是：0不重置，1成功后删除，2无论成功�
      * @var array 
      */
     private $config = [
-        'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集
+        'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集，不支持多字节字符
         'length'     => 5, // 验证码位数
         'width'      => 0, // 图片宽
         'height'     => 0, // 图片高
