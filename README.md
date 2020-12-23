@@ -54,6 +54,7 @@ composer require phpu/thinkcaptcha
 
     }
 ```
+## 更多说明
 
 如果创建验证码时使用独立的key
 `
