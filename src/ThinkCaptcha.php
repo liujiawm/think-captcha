@@ -19,7 +19,7 @@ class ThinkCaptcha
     /**
      * 当前版本号
      */
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.1';
 
     /**
      * 默认配置
@@ -503,7 +503,7 @@ class ThinkCaptcha
     /**
      * 将十六进制的颜色代码转为RGB
      * @param $hexColor 十六进制颜色代码
-     * @return array|false 如果十六进制颜色代码不正确将返回false
+     * @return int[] RGB颜色数组[r,g,b]
      */
     private static function hex2rgb($hexColor){
         if ($hexColor[0]=='#') $hexColor = substr($hexColor,1);
@@ -512,9 +512,7 @@ class ThinkCaptcha
             $hexColor = $hexColor[0].$hexColor[0].$hexColor[1].$hexColor[1].$hexColor[2].$hexColor[2];
         }
         $int = hexdec($hexColor);
-        $rgb = [0xFF & ($int >> 0x10), 0xFF & ($int >> 0x8), 0xFF & $int];
-
-        return $rgb;
+        return [0xFF & ($int >> 0x10), 0xFF & ($int >> 0x8), 0xFF & $int];
     }
 
 
