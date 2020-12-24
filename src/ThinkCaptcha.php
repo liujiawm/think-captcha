@@ -203,8 +203,16 @@ class ThinkCaptcha
         }
 
         // 建立一幅 $this->imageW x $this->imageH 的图像
-        $this->im = imagecreate($this->imageW, $this->imageH);
-        //$this->im = imagecreatetruecolor((int)$this->imageW, (int)$this->imageH);
+        if (function_exists('imagecreatetruecolor')) {
+            $this->im = imagecreatetruecolor((int)$this->imageW, (int)$this->imageH);
+        }else{
+            $this->im = imagecreate($this->imageW, $this->imageH);
+            // 添加背景后8位验证码图片在加杂点时颜色代码会出现不被允许的情况，所以要不不加背景要不不加杂点
+            //$this->config['useNoise'] = false;
+            $this->config['useImgBg'] = false;
+        }
+
+
         // 设置背景
         imagecolorallocate($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2]);
 
@@ -234,6 +242,10 @@ class ThinkCaptcha
 
 
 
+        if ($this->config['useImgBg']) {
+            $this->background();
+        }
+
         if ($this->config['useNoise']) {
             // 绘杂点
             $this->writeNoise();
@@ -241,10 +253,6 @@ class ThinkCaptcha
         if ($this->config['useCurve']) {
             // 绘干扰线
             $this->writeCurve();
-        }
-
-        if ($this->config['useImgBg']) {
-            $this->background();
         }
 
         // 绘验证码
