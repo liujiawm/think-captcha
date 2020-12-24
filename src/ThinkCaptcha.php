@@ -205,16 +205,16 @@ class ThinkCaptcha
         // 建立一幅 $this->imageW x $this->imageH 的图像
         if (function_exists('imagecreatetruecolor')) {
             $this->im = imagecreatetruecolor((int)$this->imageW, (int)$this->imageH);
+            $transparent = imagecolorallocatealpha($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2], 0);
+            imagefilledrectangle($this->im, 0, 0, $this->imageW, $this->imageH, $transparent);
         }else{
             $this->im = imagecreate($this->imageW, $this->imageH);
             // 添加背景后8位验证码图片在加杂点时颜色代码会出现不被允许的情况，所以要不不加背景要不不加杂点
             //$this->config['useNoise'] = false;
             $this->config['useImgBg'] = false;
+            // 设置背景
+            imagecolorallocate($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2]);
         }
-
-
-        // 设置背景
-        imagecolorallocate($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2]);
 
         // 验证码字体随机颜色
         $this->color = imagecolorallocate($this->im, mt_rand(1, 150), mt_rand(1, 150), mt_rand(1, 150));
@@ -372,6 +372,7 @@ class ThinkCaptcha
         $bgImage = @imagecreatefromjpeg($gb);
         @imagecopyresampled($this->im, $bgImage, 0, 0, 0, 0, $this->imageW, $this->imageH, $width, $height);
         @imagedestroy($bgImage);
+
     }
 
     /**
@@ -466,6 +467,20 @@ class ThinkCaptcha
             $config['height'] = intval($config['height']);
         }
 
+        if(isset($config['bg'])){
+            if(is_string($config['bg'])){
+                if(strlen($config['bg']) > 7 || strlen($config['bg']) < 3){
+                    unset($config['bg']);
+                }
+                $config['bg'] = self::hex2rgb($config['bg']);
+            }else if(!is_array($config['bg']) || count($config['bg']) != 3){
+                unset($config['bg']);
+            }else if(intval($config['bg'][0]) > 255 || intval($config['bg'][1]) > 255 || intval($config['bg'][2]) > 255){
+                unset($config['bg']);
+            }
+            $config['bg'] = [intval($config['bg'][0]),intval($config['bg'][1]),intval($config['bg'][2])];
+        }
+
         if(isset($config['useImgBg']) && !is_bool($config['useImgBg'])){
             unset($config['useImgBg']);
         }
@@ -483,6 +498,23 @@ class ThinkCaptcha
         }
 
         return $config;
+    }
+
+    /**
+     * 将十六进制的颜色代码转为RGB
+     * @param $hexColor 十六进制颜色代码
+     * @return array|false 如果十六进制颜色代码不正确将返回false
+     */
+    private static function hex2rgb($hexColor){
+        if ($hexColor[0]=='#') $hexColor = substr($hexColor,1);
+        $hexColor = preg_replace("/[^0-9A-Fa-f]/", '', $hexColor);
+        if (strlen($hexColor)==3){
+            $hexColor = $hexColor[0].$hexColor[0].$hexColor[1].$hexColor[1].$hexColor[2].$hexColor[2];
+        }
+        $int = hexdec($hexColor);
+        $rgb = [0xFF & ($int >> 0x10), 0xFF & ($int >> 0x8), 0xFF & $int];
+
+        return $rgb;
     }
 
 
