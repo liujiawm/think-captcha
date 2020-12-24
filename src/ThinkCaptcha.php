@@ -42,7 +42,7 @@ class ThinkCaptcha
      * 待选字体名称，文件路径 assets/ttfs
      * @var string[]
      */
-    private $ttfs = ['1.ttf','2.ttf','3.ttf','4.ttf'];
+    private $ttfs = ['1.ttf','2.ttf','3.ttf','4.ttf','5.ttf','6.ttf'];
 
 
     /**
@@ -251,6 +251,8 @@ class ThinkCaptcha
         $text = str_split($generator['char']); // 验证码
         $mx = intval(ceil(($this->imageW - $this->config['fontSize'] * $this->config['length']) / ($this->config['length']+1) * 1.2));
         $my = intval(ceil(($this->imageH - $this->config['fontSize']) / 2));
+        $mx = $mx > 0 ? $mx : 0;
+        $my = $my > 0 ? $my : 5; // 上边距为负数时，修改上边距随机最大数为5
         $x = $mx;
         foreach ($text as $index => $char) {
 
