@@ -19,9 +19,9 @@ composer require phpu/think-captcha
 
 ### 注意：验证码不支持多字节字符
 
-![](https://images.gitee.com/uploads/images/2021/0105/011626_7d5bbaca_1247621.png "test1.png")
+![](https://images.gitee.com/uploads/images/2021/0105/011626_7d5bbaca_1247621.png)
 
-![](https://images.gitee.com/uploads/images/2021/0105/011636_1c8e7f1d_1247621.png "test2.png")
+![](https://images.gitee.com/uploads/images/2021/0105/011636_1c8e7f1d_1247621.png)
 
 
 ## 使用方法
