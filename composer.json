@@ -19,6 +19,13 @@
         "psr-4" : {
             "phpu\\" : "src"
         }
+    },
+    "extra": {
+        "think": {
+            "config":{
+                "phpu_captcha": "src/config.php"
+            }
+        }
     }
 
 }
