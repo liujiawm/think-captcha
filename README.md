@@ -23,7 +23,9 @@ composer require phpu/think-captcha
 
 ![](https://images.gitee.com/uploads/images/2021/0105/011636_1c8e7f1d_1247621.png)
 
+![](https://github.com/liujiawm/think-captcha/raw/main/test1.png)
 
+![](https://github.com/liujiawm/think-captcha/raw/main/test2.png)
 ## 使用方法
 
 控制器文件use phpu\facade\ThinkCaptcha;
