@@ -127,6 +127,8 @@ ThinkCaptcha::check($code,'test',2,3600) // 1小时内有效
              'length'     => 4, // 验证码位数
              'width'      => 100, // 图片宽
              'height'     => 36, // 图片高
+             'font_size'   => 24, // 验证码字体大小(px)
+             'use_img_bg'   => false, // 是否使用背景图片
          ],
      ];
 ```
