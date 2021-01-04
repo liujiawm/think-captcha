@@ -6,7 +6,6 @@
             "email": "liujiawm@163.com"
         }
     ],
-    "minimum-stability": "dev",
     "license" : "Apache-2.0",
     "description" : "thinkphp6图片验证码",
     "keywords" : ["captcha","thinkcaptcha","think-captcha","thinkphp","phpu"],

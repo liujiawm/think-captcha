@@ -20,118 +20,113 @@ composer require phpu/think-captcha
 ### 注意：验证码不支持多字节字符
 
 
-## 输出验证码图片
+## 使用方法
+
+控制器文件use phpu\facade\ThinkCaptcha;
+
+```
+use phpu\facade\ThinkCaptcha;
+```
+
+### 输出验证码图片
 
 验证码显示控制器
 ```
     public function captcha(){
-        $config = [
-            'length'     => 4, // 验证码位数
-        ];
-
-        $tc = new ThinkCaptcha($config);
-
-        return $tc->create();
+        return ThinkCaptcha::printImg(); // png图片
+        // return ThinkCaptcha::printBase64(); // Base64
     }
 ```
-## 验证
+### 验证
+
 验证码验证控制器
 ```
     public function check($code){
-
-        $tc = new ThinkCaptcha();
-
-        if(1 !== $re = $tc->check($code)){
-            // -2验证码不存在，-1验证码过期，0错误
-            return response($re,200);
+    
+        if (false === ThinkCaptcha::check($code)){
+            return response('验证码输入错误',200);
+        }else{
+            return response('验证码输入正确',200);
         }
-
-        return response('验证码正确',200);
-
+    
     }
 ```
 ## 更多说明
 
 如果创建验证码时使用独立的key
+
 `
-create('test')
+ThinkCaptcha::printImg('test') // 'test'是识别key,限数字各字母
 `
+
 那么验证时也需要传入同名key
+
 `
-check($code,'test')
+ThinkCaptcha::check($code,'test') // 'test'是识别key,限数字各字母
 `
 
+默认验证完后不论成功还是错误都会删除验证码数据，如果验证完后不删除
+
+`
+ThinkCaptcha::check($code,'test',0) // 0表示不删除
+`
+
+或者，只有在验证成功后才删除
+
+`
+ThinkCaptcha::check($code,'test',1) // 1表示验证成功后才删除
+`
+
+当然，验证时也可以设置验证码过期时间，默认1800秒(30分钟内有效)
+
+`
+ThinkCaptcha::check($code,'test',2,3600) // 1小时内有效
+`
+
+## 独立配置
+
+配置文件中提供独立配置，
+
+如果无效果建议将配置文件config.php改名为`phpu_captcha.php`移入项目配置目录内！
+
+使用`configure()`配置，参数是配置文件一级数组的索引，默认为`default`
+
+例：
+
 ```
-    // 创建验证码的控制器
+/**
+ * 配置文件中提供独立配置，
+ * 如果无效果建议将配置文件config.php改名为phpu_captcha.php移入项目配置目录内！
+ */
     public function captcha(){
-
-        $tc = new ThinkCaptcha();
-
-        return $tc->create('userlogin');
-    }
-
-    // 验证例子，实际应用中不需要单独创建该控制器，
-    public function check(){
-
-        $tc = new ThinkCaptcha();
-
-        if(1 !== $re = $tc->check($code,'userlogin')){
-            // 错误处理
-            // -2验证码不存在，-1验证码过期，0错误
-        }else{
-            // 1正确
-        }
+        return ThinkCaptcha::configure('sign')->printImg();
     }
 
 ```
 
-`check()`默认无论正确与否都会在验证后删除该验证码，如果需要改变，需要给`check()`
-第三个参数`check(string $code,string $key='',int $reset=2)`
-$reset值有三种，分别是：0不重置，1成功后删除，2无论成功与否都删除
-
-
-更多使用方式参考代码注释
+配置文件
 
 ```
-     /**
-     * 默认配置
-     * @var array 
-     */
-    private $config = [
-        'charPreset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集，不支持多字节字符
-        'length'     => 5, // 验证码位数
-        'width'      => 0, // 图片宽
-        'height'     => 0, // 图片高
-        'fontSize'   => 48, // 验证码字体大小(px)
-        'bg'         => [243, 251, 254], // 背景颜色
-        'useCurve'   => true, // 是否画混淆曲线
-        'useNoise'   => true, // 是否添加杂点
-        'useImgBg'   => true, // 是否使用背景图片
-
-    ];
-
-     /**
-     * ThinkCaptcha constructor.
-     * @param null|array $config 配置
-     */
-    public function __construct($config = null)
-
-     /**
-     * 输出图片并写入SESSION
-     * @param string $key 独立验证码key
-     * @return Response 输出png图片
-     */
-    public function create($key=''): Response
-
-
-
-     /**
-     * 验证
-     * @param string $code 传入的验证码字符串
-     * @param string $key 独立验证码key
-     * @param int $reset 验证后是否重置,0不重置，1成功后重置，2无论成功与否都重置
-     * @param int $expire 有效时间(秒)
-     * @return int (-2不存在，-1超时，0错误，1正确)
-     */
-    public function check(string $code,string $key='',int $reset=2,int $expire=1800): int
+     return [
+         // 默认配置
+         'default' => [
+             'char_preset' => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // 预设字符集，不支持多字节字符
+             'length'     => 5, // 验证码位数
+             'width'      => 0, // 图片宽
+             'height'     => 0, // 图片高
+             'font_size'   => 48, // 验证码字体大小(px)
+             'bg'         => [243, 251, 254], // 背景颜色
+             'use_curve'   => true, // 是否画混淆曲线
+             'use_noise'   => true, // 是否添加杂点
+             'use_img_bg'   => true, // 是否使用背景图片
+         ],
+     
+         // 独立配置
+         'sign' => [
+             'char_preset' => '0123456789', // 预设字符集
+             'length'     => 4, // 验证码位数
+             'width'      => 100, // 图片宽
+             'height'     => 36, // 图片高
+         ],
+     ];
 ```
