@@ -20,7 +20,7 @@ class ThinkCaptcha
     /**
      * 当前版本号
      */
-    const VERSION = '1.0.1';
+    const VERSION = '2.0.0';
 
     /**
      * 默认配置
