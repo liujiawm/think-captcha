@@ -404,7 +404,7 @@ class ThinkCaptcha
             //杂点颜色
             //$noiseColor = imagecolorallocate($this->im, mt_rand(150, 225), mt_rand(150, 225), mt_rand(150, 225));
             $noiseColor = $this->textColor[array_rand($this->textColor,1)];
-            for ($j = 0; $j < 2; $j++) {
+            for ($j = 0; $j < 3; $j++) {
                 // 绘杂点
                 imagestring($this->im, mt_rand(1, 5), mt_rand(-10, $this->imageWidth), mt_rand(-10, $this->imageHeight), $codeSet[mt_rand(0, 29)], $noiseColor);
             }
