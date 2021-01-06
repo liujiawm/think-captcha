@@ -136,7 +136,12 @@ class ThinkCaptcha
             }
         }
     }
-    
+
+    /**
+     * 取当前配置
+     *
+     * @return array
+     */
     public function getConfig(){
         return $this->config;
     }
@@ -213,15 +218,10 @@ class ThinkCaptcha
         // 建立一幅 $this->imageW x $this->imageH 的图像
         if (function_exists('imagecreatetruecolor')) {
             $this->im = imagecreatetruecolor((int)$this->imageWidth, (int)$this->imageHeight);
-            //$transparent = imagecolorallocatealpha($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2], 0);
-            //imagefilledrectangle($this->im, 0, 0, $this->imageWidth, $this->imageHeight, $transparent);
         }else{
             $this->im = imagecreate($this->imageWidth, $this->imageHeight);
             // 添加背景后8位验证码图片在加杂点时颜色代码会出现不被允许的情况，所以要不不加背景要不不加杂点
-            //$this->config['use_noise'] = false;
             $this->config['use_img_bg'] = false;
-            // 设置背景
-            //imagecolorallocate($this->im, $this->config['bg'][0], $this->config['bg'][1], $this->config['bg'][2]);
         }
 
         // 背景色
@@ -252,22 +252,17 @@ class ThinkCaptcha
         $fontttf = $ttfPath . $ttf;
 
 
-
+        // 添加背景图
         if ($this->config['use_img_bg']) {
             $this->background();
         }
 
+        // 绘杂点
         if ($this->config['use_noise']) {
-            // 绘杂点
             $this->writeNoise();
-        }
-        if ($this->config['use_curve']) {
-            // 绘干扰线
-            $this->writeCurve();
         }
 
         // 绘验证码
-        //$texts = str_split($generator['char']); // 验证码
         $texts = preg_split('//u', $generator['char'], -1, PREG_SPLIT_NO_EMPTY); // 验证码
         $mx = intval(ceil(($this->imageWidth - $this->config['font_size'] * $this->config['length']) / ($this->config['length']+1) * 1.2));
         $my = intval(ceil(($this->imageHeight - $this->config['font_size']) / 2));
@@ -280,6 +275,11 @@ class ThinkCaptcha
 
             imagettftext($this->im, $this->config['font_size'], $angle, $x, $y, $this->textColor[$i], $fontttf, $char);
             $x     += $this->config['font_size'] + mt_rand(0, $mx);
+        }
+
+        // 绘干扰线
+        if ($this->config['use_curve']) {
+            $this->writeCurve();
         }
 
         return $this->im;
@@ -335,7 +335,7 @@ class ThinkCaptcha
     /**
      * 创建验证码
      * @param string $key 独立验证码key
-     * @return array ['char' => $char,'value' => $hash] char生成的验证码字符，value处理后的验证码哈希
+     * @return array ['char' => $char,'hash' => $hash] char生成的验证码字符，hash处理后的验证码哈希
      */
     private function generate($key=''): array{
         $char = '';
@@ -402,7 +402,8 @@ class ThinkCaptcha
         $m = intval(ceil($this->imageWidth / 20));
         for ($i = 0; $i < $m; $i++) {
             //杂点颜色
-            $noiseColor = imagecolorallocate($this->im, mt_rand(150, 225), mt_rand(150, 225), mt_rand(150, 225));
+            //$noiseColor = imagecolorallocate($this->im, mt_rand(150, 225), mt_rand(150, 225), mt_rand(150, 225));
+            $noiseColor = $this->textColor[array_rand($this->textColor,1)];
             for ($j = 0; $j < 2; $j++) {
                 // 绘杂点
                 imagestring($this->im, mt_rand(1, 5), mt_rand(-10, $this->imageWidth), mt_rand(-10, $this->imageHeight), $codeSet[mt_rand(0, 29)], $noiseColor);
@@ -526,16 +527,14 @@ class ThinkCaptcha
      * @param string $hexColor 十六进制颜色代码
      * @return int[] RGB颜色数组[r,g,b]
      */
-    private static function hex2rgb(string $hexColor){
+    private static function hex2rgb(string $hexColor):array {
         if ($hexColor[0]=='#') $hexColor = substr($hexColor,1);
         $hexColor = preg_replace("/[^0-9A-Fa-f]/", '', $hexColor);
         if (strlen($hexColor)==3){
             $hexColor = $hexColor[0].$hexColor[0].$hexColor[1].$hexColor[1].$hexColor[2].$hexColor[2];
         }
         $int = hexdec($hexColor);
+
         return [0xFF & ($int >> 0x10), 0xFF & ($int >> 0x8), 0xFF & $int];
     }
-
-
-
 }
