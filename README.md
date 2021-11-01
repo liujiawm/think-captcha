@@ -62,13 +62,13 @@ use phpu\facade\ThinkCaptcha;
 如果创建验证码时使用独立的key
 
 `
-ThinkCaptcha::printImg('test') // 'test'是识别key,限数字各字母
+ThinkCaptcha::printImg('test') // 'test'是识别key,限数字和字母
 `
 
 那么验证时也需要传入同名key
 
 `
-ThinkCaptcha::check($code,'test') // 'test'是识别key,限数字各字母
+ThinkCaptcha::check($code,'test') // 'test'是识别key,限数字和字母
 `
 
 默认验证完后不论成功还是错误都会删除验证码数据，如果验证完后不删除
