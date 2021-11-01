@@ -20,7 +20,7 @@ class ThinkCaptcha
     /**
      * 当前版本号
      */
-    const VERSION = '2.0.1';
+    const VERSION = '2.0.2';
 
     /**
      * 默认配置
@@ -56,7 +56,7 @@ class ThinkCaptcha
      * 待选字体名称，文件路径 assets/fonts
      * @var string[]
      */
-    private $ttfs = ['1.ttf','2.ttf','3.ttf','4.ttf','5.ttf','6.ttf'];
+    private $ttfs = ['1.ttf','2.ttf','3.ttf','4.ttf','5.ttf','6.ttf','7.ttf'];
 
 
     /**
