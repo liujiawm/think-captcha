@@ -56,7 +56,7 @@ class ThinkCaptcha
      * 待选字体名称，文件路径 assets/fonts
      * @var string[]
      */
-    private $ttfs = ['1.ttf','2.ttf','3.ttf','4.ttf','5.ttf','6.ttf','7.ttf'];
+    private $ttfs = ['1.ttf','2.ttf','3.ttf','4.ttf','5.ttf','6.ttf','7.ttf','8.ttf'];
 
 
     /**
